@@ -659,6 +659,21 @@ namespace SqlBuilder
             return Where(FilterFormat(alias, field, condition.ToString(), comparison, true), addType, include);
         }
 
+        public SqlQuery Where(string aliasField, DateTime date, Comparisons comparison = Comparisons.Equal, FilterAddType addType = FilterAddType.And, bool include = true)
+        {
+            var parsedDate = GetSqlLimitedDateTime(date);
+            return Where(FilterFormat(aliasField, parsedDate.ToString("yyyy-MM-dd HH:mm:ss.fff"), comparison, true), addType, include);
+        }
+
+        /// <summary>
+        /// I would recommend using an @Alias for the Date instead of using this method, as SQL processes it faster.
+        /// </summary>
+        public SqlQuery Where(string alias, string field, DateTime date, Comparisons comparison = Comparisons.Equal, FilterAddType addType = FilterAddType.And, bool include = true)
+        {
+            var parsedDate = GetSqlLimitedDateTime(date);
+            return Where(FilterFormat(alias, field, parsedDate.ToString("yyyy-MM-dd HH:mm:ss.fff"), comparison, true), addType, include);
+        }
+
         /// <summary>
         /// WHERE statement which uses a character as a condition - Useful for status filters
         /// </summary>
@@ -692,6 +707,11 @@ namespace SqlBuilder
             return Where(FilterInFormat(alias, field, SqlBuilderExtensions.GetListAsSQLSafeString(listConditions), notIn, useQuotes), addType, include);
         }
 
+        public SqlQuery WhereIn(string field, List<Guid> listConditions, bool notIn = false, FilterAddType addType = FilterAddType.And, bool useQuotes = false, bool include = true)
+        {
+            return Where(FilterInFormat("", field, SqlBuilderExtensions.GetListAsSQLSafeString(listConditions), notIn, useQuotes), addType, include);
+        }
+
         public SqlQuery WhereIn(string alias, string field, string conditions, bool notIn = false, FilterAddType addType = FilterAddType.And, bool useQuotes = false, bool include = true)
         {
             return Where(FilterInFormat(alias, field, conditions, notIn, useQuotes), addType, include);
@@ -700,6 +720,11 @@ namespace SqlBuilder
         public SqlQuery WhereIn(string alias, string field, SqlQuery conditions, bool notIn = false, FilterAddType addType = FilterAddType.And, bool useQuotes = false, bool include = true)
         {
             return Where(FilterInFormat(alias, field, conditions.Query, notIn, useQuotes), addType, include);
+        }
+
+        public SqlQuery WhereIn(string aliasField, SqlQuery conditions, bool notIn = false, FilterAddType addType = FilterAddType.And, bool useQuotes = false, bool include = true)
+        {
+            return Where(FilterInFormat("", aliasField, conditions.Query, notIn, useQuotes), addType, include);
         }
 
         public SqlQuery WhereBetween(string alias, string field, string conditionOne, string conditionTwo, bool notBetween = false, FilterAddType addType = FilterAddType.And, bool useQuotes = false, bool include = true)
@@ -975,6 +1000,15 @@ namespace SqlBuilder
         /// Add columns to be inserted into. Eg. INSERT INTO X (col1, col2). And if added as values, then also VALUES (@col1, @col2)
         /// </summary>
         /// <param name="addAsValue">Set these as the values, as a parameter @Value/param>
+        public SqlQuery InsertInto(params string[] columns)
+        {
+            return InsertInto(false, columns);
+        }
+
+        /// <summary>
+        /// Add columns to be inserted into. Eg. INSERT INTO X (col1, col2). And if added as values, then also VALUES (@col1, @col2)
+        /// </summary>
+        /// <param name="addAsValue">Set these as the values, as a parameter @Value/param>
         public SqlQuery InsertInto(bool addAsValue = true, List<string> columns = null)
         {
             columns = columns.Where(x => !string.IsNullOrEmpty(x)).ToList();
@@ -1013,6 +1047,17 @@ namespace SqlBuilder
         {
             if (values.Count() > 0)
                 InsertValues.Add(string.Join(", ", values));
+
+            return this;
+        }
+
+        /// <summary>
+        /// Insert multiple values to be inserted into columns, all entries will be as one grouping. Eg VALUES (item1, item2, item3)
+        /// </summary>
+        public SqlQuery InsertIntoValues(params object[] values)
+        {
+            if (values.Count() > 0)
+                InsertValues.Add(string.Join(", ", values.Select(x => SqlBuilderExtensions.GetLiteralStringForSQL(x))));
 
             return this;
         }
