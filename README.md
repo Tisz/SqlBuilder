@@ -34,7 +34,7 @@ WHERE ID IN ('ea99e4d7-eefe-42c8-9ea5-fca341b8a33e', '675725a9-9703-4b9d-8af1-50
 ### ✨Easy passing of conditions, and changing the comparison
 ```cs
 query.AddColumn("Name")
-    .From("Customesr")
+    .From("Customers")
     .Where("Created", DateTime.Now.AddYears(-1), Comparisons.Greater);
 ```
 
